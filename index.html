@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Yao.WEBP — Portfolio photo</title>
+  <meta name="description" content="Portfolio photo de Yao.WEBP.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Menu fixe -->
+  <header class="topbar">
+    <nav class="topbar__side">
+      <button class="pill" type="button" id="menuBtn" aria-haspopup="dialog"><i></i>Menu</button>
+      <a class="pill pill--hide-sm" href="https://www.instagram.com/yao.webp" target="_blank" rel="noopener"><i></i>Instagram : @yao.webp</a>
+    </nav>
+    <a class="topbar__name" href="#top" data-go="hero">YAO.WEBP</a>
+    <nav class="topbar__side topbar__side--right">
+      <a class="pill" href="https://www.instagram.com/yao.webp" target="_blank" rel="noopener"><i></i>IG</a>
+    </nav>
+  </header>
+
+  <!-- Vue 1 : landing -->
+  <section class="hero" id="hero">
+    <div class="hero__media">
+      <img class="hero__img" id="heroImg" src="images/624221447_18070316492165103_564450567510000497_n..webp" alt="Photographie de Yao.WEBP" draggable="false">
+      <div class="hero__shade"></div>
+    </div>
+    <h1 class="hero__title" id="heroTitle" aria-label="Yao.WEBP"><span id="heroTitleText">YAO.WEBP</span></h1>
+    <a class="hero__scroll" href="#canvas" data-go="canvas">Scroll</a>
+  </section>
+
+  <!-- Vue 2 : canvas de photos -->
+  <section class="canvas" id="canvas" aria-label="Galerie de photos : glisser pour se déplacer, molette ou pincer pour zoomer">
+    <div class="canvas__world" id="world"></div>
+    <div class="canvas__hint" id="hint">Glisse pour explorer · clique une photo pour la bouger ou l’agrandir</div>
+  </section>
+
+  <!-- Message du menu (en attendant son contenu) -->
+  <div class="menu-msg" id="menuMsg" role="dialog" aria-modal="true" aria-label="Menu" hidden>
+    <div class="menu-msg__box">
+      <p class="menu-msg__title">Bientôt disponible</p>
+      <p class="menu-msg__text">Le menu est en construction. Reviens plus tard&nbsp;!</p>
+      <button class="pill" type="button" id="menuClose"><i></i>Fermer</button>
+    </div>
+  </div>
+
+  <script src="js/photos.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
