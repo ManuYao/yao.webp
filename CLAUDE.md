@@ -38,6 +38,9 @@ mon_portfolioPhoto/
 └── images/          # photos (noms Instagram avec « .. » : toujours passer par encodeURI)
 ```
 
+## Intro (js/intro.js)
+À l'arrivée : point de chargement, flash blanc, puis défilé rapide de photos cohérentes (fondu enchaîné ~220 ms chacune) jusqu'à la photo de la landing, puis le menu et le nom « YAO.WEBP » apparaissent. Les photos du défilé sont la liste `SEQUENCE` en haut de `js/intro.js` (la photo finale = celle de `#heroImg`). Démarre dès que 3 photos sont chargées, passable d'un tap / clic / scroll / touche, désactivée si `prefers-reduced-motion`. Inspiré d'une vidéo de référence de Yao (défilé d'une série de portraits aux mêmes tons, qui se fondent jusqu'à la page finale).
+
 ## Mode édition
 `index.html?edit` : déplacer les photos du canvas à la souris, bouton « Copier les positions » → coller dans `js/layout.js`. Invisible pour les visiteurs.
 

@@ -8,9 +8,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet">
+  <script>if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('is-intro');</script>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
+  <!-- Intro : défilé de photos jusqu'à la landing -->
+  <div class="intro" id="intro" aria-hidden="true">
+    <span class="intro__dot"></span>
+    <span class="intro__count"></span>
+  </div>
 
   <!-- Menu fixe -->
   <header class="topbar">
@@ -51,6 +58,7 @@
 
   <script src="js/photos.js"></script>
   <script src="js/layout.js"></script>
+  <script src="js/intro.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

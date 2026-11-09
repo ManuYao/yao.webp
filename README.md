@@ -5,6 +5,10 @@ Instagram : [@yao.webp](https://www.instagram.com/yao.webp)
 
 ![Landing](docs/landing-desktop.png)
 
+## L'intro
+
+À l'arrivée, un flash puis un défilé rapide de photos aux mêmes tons, qui se fondent les unes dans les autres jusqu'à la photo de la landing. On peut la passer d'un tap ou d'un clic.
+
 ## La galerie
 
 Toutes les photos sont posées en vrac sur un canvas infini. On glisse pour se déplacer, on zoome à la molette ou en pinçant.
