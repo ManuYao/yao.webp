@@ -13,7 +13,7 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { scroll-behavior: smooth; scroll-snap-type: y mandatory; background: var(--bg); }
+html { scroll-behavior: smooth; scroll-snap-type: none; /* géré en JS : le snap « mandatory » peut coincer le scroll sur mobile */ background: var(--bg); }
 
 body {
   font-family: var(--font-ui);

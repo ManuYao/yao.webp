@@ -9,11 +9,25 @@
   const canvas = document.getElementById('canvas');
   let lockUntil = 0; // ignore les molettes pendant / juste après une transition
 
-  const inCanvas = () => scrollY >= innerHeight - 2;
+  // Sur mobile, innerHeight change quand la barre d'adresse se replie alors que la landing mesure 100svh :
+  // on se base donc sur la vraie position de la galerie, avec de la tolérance.
+  const canvasTop = () => canvas.offsetTop;
+  const inCanvas = () => scrollY > canvasTop() * 0.5;
   function go(view) {
     lockUntil = performance.now() + 900;
-    scrollTo({ top: view === 'canvas' ? innerHeight : 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+    scrollTo({ top: view === 'canvas' ? canvasTop() : 0, behavior: reduceMotion ? 'auto' : 'smooth' });
   }
+
+  // Filet de sécurité : si le scroll s'arrête entre les deux vues, on termine la transition
+  // (évite de rester coincé à moitié, notamment avec l'inertie tactile des navigateurs mobiles)
+  let settleTimer = 0;
+  addEventListener('scroll', () => {
+    clearTimeout(settleTimer);
+    settleTimer = setTimeout(() => {
+      const top = canvasTop();
+      if (scrollY > 2 && scrollY < top - 2) go(scrollY > top * 0.5 ? 'canvas' : 'hero');
+    }, 160);
+  }, { passive: true });
 
   // Un petit coup de molette suffit : on bascule automatiquement vers l'autre vue
   addEventListener('wheel', (e) => {
@@ -60,7 +74,7 @@
 
   function loopHero(t) {
     // Dans la galerie, la landing n'est plus visible : on n'anime plus rien (économise la batterie et le CPU)
-    if (!reduceMotion && scrollY < innerHeight * 0.98) {
+    if (!reduceMotion && scrollY < canvasTop() * 0.98) {
       if (noHover) { // mobile : légère dérive automatique
         target.x = Math.sin(t / 2600) * 0.6;
         target.y = Math.cos(t / 3200) * 0.4;
@@ -89,7 +103,7 @@
 
   // Transition au scroll : la vue 1 s'estompe vers le canvas
   function onScroll() {
-    const p = Math.min(1, Math.max(0, scrollY / innerHeight));
+    const p = Math.min(1, Math.max(0, scrollY / canvasTop()));
     heroMedia.style.opacity = String(1 - p * 0.9);
     heroTitle.style.opacity = String(1 - p);
   }
@@ -293,9 +307,19 @@
   let pinch = null;
   let drag = null; // { type: 'item' | 'resize', ... }
 
+  // Si le navigateur reprend la main (geste système, appli Instagram/WhatsApp...), un doigt peut ne jamais
+  // « se relever » : on repart alors toujours d'un état propre.
+  function resetPointers() {
+    pointers.clear();
+    pinch = null;
+    drag = null;
+    canvas.classList.remove('is-dragging');
+  }
+
   canvas.addEventListener('pointerdown', (e) => {
     if (!inCanvas()) return;
-    canvas.setPointerCapture(e.pointerId);
+    if (e.isPrimary) resetPointers(); // un nouveau premier doigt = tous les précédents sont terminés
+    try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     dismissHint();
 
@@ -378,6 +402,12 @@
   };
   canvas.addEventListener('pointerup', endPointer);
   canvas.addEventListener('pointercancel', endPointer);
+  canvas.addEventListener('lostpointercapture', endPointer);
+  canvas.addEventListener('touchend', (e) => { if (e.touches.length === 0) resetPointers(); }, { passive: true });
+  canvas.addEventListener('touchcancel', resetPointers, { passive: true });
+  addEventListener('blur', resetPointers);
+  addEventListener('pagehide', resetPointers);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) resetPointers(); });
 
   canvas.addEventListener('wheel', (e) => {
     if (!inCanvas()) return; // pendant la transition, c'est le handler global qui décide
