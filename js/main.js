@@ -11,7 +11,8 @@
 
   // Sur mobile, innerHeight change quand la barre d'adresse se replie alors que la landing mesure 100svh :
   // on se base donc sur la vraie position de la galerie, avec de la tolérance.
-  const canvasTop = () => canvas.offsetTop;
+  // Position à atteindre pour « être dans la galerie » : jamais au-delà de ce que la page permet de scroller
+  const canvasTop = () => Math.max(1, Math.min(canvas.offsetTop, document.documentElement.scrollHeight - innerHeight));
   const inCanvas = () => scrollY > canvasTop() * 0.5;
   function go(view) {
     lockUntil = performance.now() + 900;
@@ -113,6 +114,7 @@
   /* ===================== Vue 2 : canvas pan / zoom ===================== */
   const world = document.getElementById('world');
   const hint = document.getElementById('hint');
+  if (noHover) hint.textContent = 'Glisse pour explorer · pince pour zoomer';
 
   const isSmall = () => innerWidth < 700;       // téléphone
   const MOBILE_START_Z = 0.85;                  // ← zoom de départ sur téléphone

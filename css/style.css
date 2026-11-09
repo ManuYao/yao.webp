@@ -93,6 +93,7 @@ button.pill { font-family: inherit; cursor: pointer; }
   position: relative;
   height: 100vh;
   height: 100svh;
+  height: 100dvh; /* suit la barre d'adresse mobile : évite qu'une bande de la landing reste visible sous la galerie */
   overflow: hidden;
   scroll-snap-align: start;
   background: #20252d;
@@ -151,6 +152,7 @@ button.pill { font-family: inherit; cursor: pointer; }
   position: relative;
   height: 100vh;
   height: 100svh;
+  height: 100dvh; /* suit la barre d'adresse mobile : évite qu'une bande de la landing reste visible sous la galerie */
   overflow: hidden;
   scroll-snap-align: start;
   background-color: var(--bg);
@@ -257,6 +259,13 @@ body.edit .edit-bar { display: flex; }
 .sel__h[data-h="e"] { left: 100%; top: 50%; cursor: ew-resize; }
 
 @media (max-width: 640px) {
+  .canvas__hint {
+    white-space: normal;
+    width: max-content;
+    max-width: calc(100% - 32px);
+    text-align: center;
+    line-height: 1.6;
+  }
   .pill--hide-sm { display: none; }
   .topbar { padding-left: 12px; padding-right: 12px; }
   .topbar__name { font-size: 16px; }
