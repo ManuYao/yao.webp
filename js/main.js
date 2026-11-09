@@ -59,7 +59,8 @@
   });
 
   function loopHero(t) {
-    if (!reduceMotion) {
+    // Dans la galerie, la landing n'est plus visible : on n'anime plus rien (économise la batterie et le CPU)
+    if (!reduceMotion && scrollY < innerHeight * 0.98) {
       if (noHover) { // mobile : légère dérive automatique
         target.x = Math.sin(t / 2600) * 0.6;
         target.y = Math.cos(t / 3200) * 0.4;
@@ -99,19 +100,30 @@
   const world = document.getElementById('world');
   const hint = document.getElementById('hint');
 
-  const MIN_Z = 0.12, MAX_Z = 3;
+  const isSmall = () => innerWidth < 700;       // téléphone
+  const MOBILE_START_Z = 0.85;                  // ← zoom de départ sur téléphone
+  const MOBILE_MIN_Z = 0.65;                      // ← dézoom maximal sur téléphone (plus grand = moins de dézoom)
+  const minZ = () => (isSmall() ? MOBILE_MIN_Z : 0.12);
+  const MAX_Z = 3;
   const view = { x: 0, y: 0, z: 0.55 };
 
+  // Un seul rendu par image à l'écran (les événements tactiles arrivent bien plus vite que 60 fps)
+  let viewQueued = false;
   function applyView() {
-    world.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.z})`;
-    world.style.setProperty('--inv', String(1 / view.z));
-    const s = 28 * view.z;
-    canvas.style.backgroundSize = `${s}px ${s}px`;
-    canvas.style.backgroundPosition = `${view.x}px ${view.y}px`;
+    if (viewQueued) return;
+    viewQueued = true;
+    requestAnimationFrame(() => {
+      viewQueued = false;
+      world.style.transform = `translate3d(${view.x}px, ${view.y}px, 0) scale(${view.z})`;
+      if (selected) sel.style.setProperty('--inv', String(1 / view.z)); // taille du cadre de sélection
+      const s = 28 * view.z;
+      canvas.style.backgroundSize = `${s}px ${s}px`;
+      canvas.style.backgroundPosition = `${view.x}px ${view.y}px`;
+    });
   }
 
   function zoomAt(cx, cy, factor) {
-    const z = Math.min(MAX_Z, Math.max(MIN_Z, view.z * factor));
+    const z = Math.min(MAX_Z, Math.max(minZ(), view.z * factor));
     const k = z / view.z;
     view.x = cx - (cx - view.x) * k;
     view.y = cy - (cy - view.y) * k;
@@ -185,13 +197,23 @@
     const rows = Math.ceil(PHOTOS.length / COLS);
     const cw = COLS * CELL_W, ch = rows * CELL_H;
     const r = canvas.getBoundingClientRect();
-    view.z = Math.min(0.6, Math.max(MIN_Z, Math.min(r.width / 1500, r.height / 1000)));
+    // Téléphone : départ déjà zoomé (environ 1 photo et demie en largeur) ; ordinateur : vue d'ensemble
+    view.z = isSmall()
+      ? MOBILE_START_Z
+      : Math.min(0.6, Math.max(minZ(), Math.min(r.width / 1500, r.height / 1000)));
     view.x = r.width / 2 - (cw / 2) * view.z;
     view.y = r.height / 2 - (ch / 2) * view.z;
     applyView();
   }
   centerView();
-  addEventListener('resize', centerView);
+  // Ne recentrer que si la LARGEUR change : sur mobile, la barre d'adresse qui se replie
+  // déclenche un resize et réinitialisait la vue en plein déplacement.
+  let lastW = innerWidth;
+  addEventListener('resize', () => {
+    if (innerWidth === lastW) return;
+    lastW = innerWidth;
+    centerView();
+  });
 
   /* ===================== Mode édition (touche E, ou ?edit) ===================== */
   let editMode = false;
@@ -211,6 +233,7 @@
   function syncSel() {
     if (!selected) { sel.classList.remove('is-on'); return; }
     sel.classList.add('is-on');
+    sel.style.setProperty('--inv', String(1 / view.z));
     sel.style.left = selected.x + 'px';
     sel.style.top = selected.y + 'px';
     sel.style.width = selected.w + 'px';
