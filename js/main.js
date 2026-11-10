@@ -130,6 +130,12 @@
   const AUTO_RATE = 0.045;   // ← vitesse du dézoom (par seconde, exponentiel : 0.045 ≈ -4,5 % de zoom par seconde)
   const AUTO_DELAY = 2000;   // ← pause (ms) avant de démarrer à l'arrivée dans la galerie
   const AUTO_RAMP = 1500;    // ← durée (ms) de montée en vitesse, pour que ça démarre sans à-coup
+  // Arrêt du dézoom auto sur ordinateur : on s'arrête à ce stade (mesuré sur la capture de Yao : environ 10 colonnes
+  // de photos visibles), pas au dézoom maximal. Exprimé en largeur de « monde » visible, donc le résultat est le
+  // même quelle que soit la taille de l'écran. Plus le nombre est grand, plus ça dézoome. Sur téléphone : inchangé
+  // (on va jusqu'au dézoom maximal MOBILE_MIN_Z). Le visiteur peut toujours dézoomer plus loin à la main.
+  const AUTO_VIEW_W = 5490;  // ← largeur du monde visible (px) quand le dézoom auto s'arrête sur PC (≈ zoom 0,34 sur 1880 px)
+  const AUTO_MIN_Z_FLOOR = 0.2; // ← garde-fou : jamais plus petit que ça (petits écrans / tablettes)
   let idleSince = performance.now(); // moment d'arrivée dans la galerie (début du délai)
   let autoZoomStopped = false;       // true dès que le visiteur zoome lui-même
 
@@ -455,12 +461,15 @@
     const inGallery = scrollY >= canvasTop() * 0.98;
     if (reduceMotion || editMode || !menuMsg.hidden || !inGallery) {
       idleSince = now; // on repart d'un délai complet au retour dans la galerie
-    } else if (view.z > minZ()) {
+    } else {
+      const rect = canvas.getBoundingClientRect();
+      // PC : on s'arrête au stade voulu ; téléphone : jusqu'au dézoom maximal
+      const stopZ = isSmall() ? minZ() : Math.max(minZ(), AUTO_MIN_Z_FLOOR, rect.width / AUTO_VIEW_W);
       const t = now - idleSince - AUTO_DELAY;
-      if (t > 0) {
+      if (t > 0 && view.z > stopZ) {
         const speed = AUTO_RATE * Math.min(1, t / AUTO_RAMP); // montée en vitesse progressive
-        const rect = canvas.getBoundingClientRect();
-        zoomAt(rect.width / 2, rect.height / 2, Math.exp(-speed * dt)); // recule depuis le centre de l'écran
+        const factor = Math.max(Math.exp(-speed * dt), stopZ / view.z); // sans jamais dépasser le stade d'arrêt
+        zoomAt(rect.width / 2, rect.height / 2, factor); // recule depuis le centre de l'écran
       }
     }
     requestAnimationFrame(loopAutoZoom);
