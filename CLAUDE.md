@@ -62,6 +62,7 @@ mon_portfolioPhoto/
 - Le nom de Yao peut apparaître dans un encadré/bouton à la place de la carte Inspo (à confirmer).
 - Fond **plus sombre** que le blanc d'Inspo (ou beige / autre couleur) ; Yao enverra des images de fonds d'inspiration, Claude choisit ce qui convient.
 - Photos : créations de Yao faites sous Photoshop (celles de son Instagram), déjà prêtes sur son PC.
+- **Dézoom automatique** : en arrivant dans la galerie, la vue dézoome doucement (depuis le centre de l'écran) jusqu'au dézoom maximal existant (`minZ()`), même si le visiteur se balade. Dès qu'il zoome lui-même (molette / pincement), l'animation s'arrête définitivement. But : qu'on comprenne qu'on peut dézoomer (la sœur de Yao croyait le site non responsive). Réglages en haut de la section canvas de `js/main.js` : `AUTO_RATE`, `AUTO_DELAY`, `AUTO_RAMP`. Désactivé en mode édition et avec `prefers-reduced-motion`.
 - Idée pour plus tard : clic sur une photo → le fond change, autres effets artistiques. Hors périmètre pour l'instant.
 - Outil de placement : mode dev caché (ex. `?edit` dans l'URL) pour positionner les photos et exporter les coordonnées, invisible pour les visiteurs.
 

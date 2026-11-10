@@ -123,6 +123,16 @@
   const MAX_Z = 3;
   const view = { x: 0, y: 0, z: 0.55 };
 
+  // Dézoom automatique : une fois dans la galerie, la vue recule doucement jusqu'au dézoom maximal,
+  // pour que le visiteur comprenne tout de suite qu'on peut dézoomer (et que le site est bien responsive).
+  // Il continue même si le visiteur se balade / déplace des photos ; dès qu'il zoome lui-même (molette ou
+  // pincement), l'animation s'arrête définitivement et c'est lui qui contrôle le zoom.
+  const AUTO_RATE = 0.045;   // ← vitesse du dézoom (par seconde, exponentiel : 0.045 ≈ -4,5 % de zoom par seconde)
+  const AUTO_DELAY = 2000;   // ← pause (ms) avant de démarrer à l'arrivée dans la galerie
+  const AUTO_RAMP = 1500;    // ← durée (ms) de montée en vitesse, pour que ça démarre sans à-coup
+  let idleSince = performance.now(); // moment d'arrivée dans la galerie (début du délai)
+  let autoZoomStopped = false;       // true dès que le visiteur zoome lui-même
+
   // Un seul rendu par image à l'écran (les événements tactiles arrivent bien plus vite que 60 fps)
   let viewQueued = false;
   function applyView() {
@@ -357,6 +367,7 @@
       const rect = canvas.getBoundingClientRect();
       zoomAt((a.x + b.x) / 2 - rect.left, (a.y + b.y) / 2 - rect.top, d / pinch.d);
       pinch.d = d;
+      autoZoomStopped = true; // le visiteur zoome lui-même : fin du dézoom auto
     } else if (drag && drag.type === 'item') {
       drag.it.x += dx / view.z;
       drag.it.y += dy / view.z;
@@ -419,5 +430,29 @@
     const rect = canvas.getBoundingClientRect();
     const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
     zoomAt(e.clientX - rect.left, e.clientY - rect.top, Math.exp(-dy * 0.0015));
+    autoZoomStopped = true; // le visiteur zoome lui-même : fin du dézoom auto
   }, { passive: false });
+
+  /* ===================== Dézoom automatique ===================== */
+  let lastFrame = performance.now();
+  function loopAutoZoom(now) {
+    const dt = Math.min(0.1, (now - lastFrame) / 1000); // plafonné : pas de saut après un onglet en arrière-plan
+    lastFrame = now;
+
+    if (autoZoomStopped) return; // le visiteur a zoomé : fini pour de bon (la boucle s'arrête)
+
+    const inGallery = scrollY >= canvasTop() * 0.98;
+    if (reduceMotion || editMode || !menuMsg.hidden || !inGallery) {
+      idleSince = now; // on repart d'un délai complet au retour dans la galerie
+    } else if (view.z > minZ()) {
+      const t = now - idleSince - AUTO_DELAY;
+      if (t > 0) {
+        const speed = AUTO_RATE * Math.min(1, t / AUTO_RAMP); // montée en vitesse progressive
+        const rect = canvas.getBoundingClientRect();
+        zoomAt(rect.width / 2, rect.height / 2, Math.exp(-speed * dt)); // recule depuis le centre de l'écran
+      }
+    }
+    requestAnimationFrame(loopAutoZoom);
+  }
+  requestAnimationFrame(loopAutoZoom);
 })();
