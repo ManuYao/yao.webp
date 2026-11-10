@@ -317,6 +317,12 @@
   /* ===================== Interactions : drag, resize, molette, pincer ===================== */
   const pointers = new Map();
   let pinch = null;
+
+  // Position écran (clientX / clientY) → coordonnées dans le « monde » du canvas, avec la vue actuelle
+  function toWorld(cx, cy) {
+    const r = canvas.getBoundingClientRect();
+    return [(cx - r.left - view.x) / view.z, (cy - r.top - view.y) / view.z];
+  }
   let drag = null; // { type: 'item' | 'resize', ... }
 
   // Si le navigateur reprend la main (geste système, appli Instagram/WhatsApp...), un doigt peut ne jamais
@@ -342,12 +348,15 @@
       return;
     }
     const t = e.target;
+    // Les gestes sont mesurés en coordonnées du « monde » (pas en pixels écran) : la photo reste sous le doigt
+    // même si la vue dézoome en même temps (dézoom automatique).
+    const [wx, wy] = toWorld(e.clientX, e.clientY);
     if (t.classList.contains('sel__h') && selected) {
-      drag = { type: 'resize', h: t.dataset.h, it: selected, x0: selected.x, y0: selected.y, w0: selected.w, h0: selected.h || selected.el.offsetHeight, sx: e.clientX, sy: e.clientY };
+      drag = { type: 'resize', h: t.dataset.h, it: selected, x0: selected.x, y0: selected.y, w0: selected.w, h0: selected.h || selected.el.offsetHeight, sx: wx, sy: wy };
     } else if (t.classList.contains('photo')) {
       const it = items.find((i) => i.el === t);
       select(it);
-      drag = { type: 'item', it };
+      drag = { type: 'item', it, ox: wx - it.x, oy: wy - it.y };
     } else {
       select(null);
       canvas.classList.add('is-dragging');
@@ -369,8 +378,9 @@
       pinch.d = d;
       autoZoomStopped = true; // le visiteur zoome lui-même : fin du dézoom auto
     } else if (drag && drag.type === 'item') {
-      drag.it.x += dx / view.z;
-      drag.it.y += dy / view.z;
+      const [wx, wy] = toWorld(e.clientX, e.clientY);
+      drag.it.x = wx - drag.ox;
+      drag.it.y = wy - drag.oy;
       place(drag.it);
       syncSel();
     } else if (drag && drag.type === 'resize') {
@@ -380,7 +390,8 @@
       const east = k.includes('e'), west = k.includes('w');
       const south = k.includes('s'), north = k.includes('n');
       const MIN = 50;
-      const mx = (e.clientX - drag.sx) / view.z, my = (e.clientY - drag.sy) / view.z;
+      const [wx, wy] = toWorld(e.clientX, e.clientY);
+      const mx = wx - drag.sx, my = wy - drag.sy;
       let w = drag.w0, h = drag.h0;
       if (east) w = drag.w0 + mx;
       if (west) w = drag.w0 - mx;
